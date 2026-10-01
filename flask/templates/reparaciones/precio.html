@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% set seccion = 'reparaciones' %}
+{% block title %}Precios – {{ tipo.nombre }}{% endblock %}
+{% block content %}
+
+<div class="form-container" style="max-width: 720px;">
+    <h2>Precios de Reparación: {{ tipo.nombre }}</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 24px;">
+        Asigná o actualizá el precio de este tipo de reparación para un producto específico.
+    </p>
+
+    <form action="/tipos-reparacion/{{ tipo.id }}/precio" method="POST" class="styled-form">
+        <div class="form-group">
+            <label for="producto_id">Producto</label>
+            <select id="producto_id" name="producto_id" required>
+                <option value="">— Seleccioná un producto —</option>
+                {% for prod in productos %}
+                <option value="{{ prod.id }}">{{ prod.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="precio">Precio de Reparación ($)</label>
+            <input type="number" id="precio" name="precio"
+                   min="0" step="0.01"
+                   placeholder="Ej: 3500.00"
+                   required>
+            <p class="hint">El precio anterior quedará guardado en el historial.</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="/tipos-reparacion" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-warning">Guardar Precio</button>
+        </div>
+    </form>
+
+    {% if precios_actuales %}
+    <div class="section-divider"></div>
+    <h3 style="margin-bottom: 16px;">Precios vigentes por producto</h3>
+    <div class="table-container" style="box-shadow: none; border: 1px solid var(--border-color);">
+        <table class="crud-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio vigente</th>
+                    <th>Desde</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pr in precios_actuales %}
+                <tr>
+                    <td><strong>{{ pr.producto_nombre }}</strong></td>
+                    <td>${{ "%.2f"|format(pr.precio) }}</td>
+                    <td class="text-muted text-sm">{{ pr.fecha_desde[:10] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

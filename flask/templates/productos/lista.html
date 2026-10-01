@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% set seccion = 'productos' %}
+{% block title %}Productos{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Productos</h1>
+    <a href="/productos/nuevo" class="btn btn-primary">+ Nuevo Producto</a>
+</div>
+
+<div class="table-container">
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td class="text-muted text-sm">{{ p.id }}</td>
+                <td><strong>{{ p.nombre }}</strong></td>
+                <td class="text-muted">{{ p.categoria_nombre }}</td>
+                <td>
+                    {% if p.activo %}
+                        <span class="badge badge-active">Activo</span>
+                    {% else %}
+                        <span class="badge badge-inactive">Baja</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <a href="/productos/{{ p.id }}/editar" class="btn btn-sm btn-outline">Editar</a>
+                    {% if p.activo %}
+                    <form action="/productos/{{ p.id }}/baja" method="POST" class="inline-form"
+                          onsubmit="return confirm('¿Dar de baja el producto «{{ p.nombre }}»?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Dar de baja</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="empty-state">No hay productos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

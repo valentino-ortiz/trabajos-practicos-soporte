@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block titulo %}Modo Cocina - ChefVoz{% endblock %}
+
+{% block body_class %}h-[100dvh] flex flex-col overflow-hidden{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Prevent scrolling globally */
+    body {
+        overflow: hidden;
+        height: 100dvh;
+        width: 100vw;
+    }
+    .kitchen-text-glow {
+        text-shadow: 0 0 10px rgba(255, 193, 116, 0.2);
+    }
+    .progress-bar-container {
+        width: 100%;
+        height: 4px;
+        background-color: theme('colors.surface-container-highest');
+        position: relative;
+        z-index: 60;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background-color: theme('colors.primary');
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    @keyframes pulse-voice {
+        0% { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(78, 222, 163, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0); }
+    }
+    .voice-active {
+        background-color: theme('colors.error-container') !important;
+        border-color: theme('colors.error-container') !important;
+        color: theme('colors.on-error-container') !important;
+        animation: pulse-voice 2s infinite;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div id="cocina-app" data-receta-id="{{ receta_id }}" class="fixed inset-0 flex flex-col w-full bg-background z-[100]">
+    <!-- Top Bar -->
+    <header class="w-full px-lg py-md flex justify-between items-center z-50 bg-surface-container-low border-b border-surface-container-highest shrink-0 h-[72px]">
+        <div class="flex items-baseline space-x-sm truncate max-w-[50vw]">
+            <!-- Botón Salir -->
+            <button id="btn-salir" onclick="accionSalir()" class="text-on-surface-variant hover:text-error transition-colors p-1 shrink-0" title="Salir">
+                <span class="material-symbols-outlined text-[24px]">close</span>
+            </button>
+            <h1 id="cocina-titulo-receta" class="font-headline-md text-headline-md text-primary font-bold truncate">Cargando...</h1>
+            <span id="cocina-contador-pasos" class="font-label-md text-label-md text-on-surface-variant hidden md:inline">Paso -- de --</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Accent Selector -->
+            <select id="select-acento" onchange="cambiarAcento(this.value)" class="bg-surface-container border border-surface-variant text-on-surface text-xs rounded-full px-2 py-1 focus:outline-none focus:border-primary max-w-[120px] sm:max-w-none">
+                <option value="es|com.ar">🇦🇷 Español (AR)</option>
+                <option value="es|es">🇪🇸 Español (ES)</option>
+                <option value="es|com.mx">🇲🇽 Español (MX)</option>
+                <option value="fr|fr">🇫🇷 Français</option>
+                <option value="en|us">🇺🇸 English</option>
+                <option value="pt|com.br">🇧🇷 Português</option>
+            </select>
+
+            <!-- Voice Status Indicator -->
+            <button id="btn-mic" onclick="toggleMic()" class="flex items-center space-x-xs px-3 py-1 rounded-full border border-surface-variant bg-surface-container hover:bg-surface-variant transition-colors cursor-pointer shrink-0">
+                <span id="mic-icon" class="material-symbols-outlined text-[18px] text-on-surface-variant">mic_off</span>
+                <span id="mic-status" class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">Inactivo</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container shrink-0">
+        <div id="cocina-progreso-fill" class="progress-bar-fill"></div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col items-center justify-start sm:justify-center p-lg relative overflow-y-auto min-h-0">
+        <div class="max-w-4xl text-center space-y-lg px-2xl py-2xl w-full">
+            <div id="cocina-estado-audio" class="font-label-md text-label-md text-primary-container mb-4 h-6" aria-live="assertive" aria-atomic="true"></div>
+            <p id="cocina-texto-paso" class="font-body-lg text-body-lg md:text-headline-md text-on-surface kitchen-text-glow leading-relaxed transition-all duration-300">
+                Cargando...
+            </p>
+        </div>
+        <!-- Audio (Oculto) -->
+        <audio id="cocina-audio" preload="auto" aria-hidden="true"></audio>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="w-full flex justify-around items-center px-md pb-safe bg-surface-container-highest shadow-lg h-[120px] z-50 shrink-0 border-t border-surface-container">
+        <!-- Anterior -->
+        <button id="btn-anterior" onclick="accionAnterior()" class="flex flex-col items-center justify-center text-on-surface bg-surface hover:bg-surface-variant transition-colors rounded-xl h-[80px] w-full mx-xs border border-surface-variant active:scale-95 duration-150 relative disabled:opacity-50 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-[32px] mb-xs">arrow_back</span>
+            <span class="font-label-md text-label-md">Anterior</span>
+            <span class="absolute top-1 left-2 font-mono text-[10px] opacity-50">←</span>
+        </button>
+
+        <!-- Repetir -->
+        <button id="btn-repetir" onclick="accionRepetir()" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container hover:bg-primary transition-colors rounded-xl h-[80px] w-full mx-xs shadow-md active:scale-95 duration-150 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+            <span class="material-symbols-outlined text-[32px] mb-xs">replay_10</span>
+            <span class="font-label-md text-label-md font-bold hidden sm:inline">Repetir</span>
+            <span class="absolute top-1 left-2 font-mono text-[10px] opacity-50 hidden md:inline">R</span>
+        </button>
+
+        <!-- Pausa / Play -->
+        <button id="btn-pausa" onclick="togglePausaAudio()" class="flex flex-col items-center justify-center text-on-surface bg-surface hover:bg-surface-variant transition-colors rounded-xl h-[80px] w-full mx-xs border border-surface-variant shadow-sm active:scale-95 duration-150 relative disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="icono-pausa" class="material-symbols-outlined text-[32px] mb-xs">pause</span>
+            <span id="texto-pausa" class="font-label-md text-label-md hidden sm:inline">Pausar</span>
+            <span class="absolute top-1 left-2 font-mono text-[10px] opacity-50 hidden md:inline">P</span>
+        </button>
+
+        <!-- Siguiente -->
+        <button id="btn-siguiente" onclick="accionSiguiente()" class="flex flex-col items-center justify-center text-on-secondary-container bg-secondary-container hover:bg-secondary transition-colors rounded-xl h-[80px] w-full mx-xs border border-secondary shadow-md active:scale-95 duration-150 relative disabled:opacity-50 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-[32px] mb-xs">arrow_forward</span>
+            <span class="font-label-md text-label-md">Siguiente</span>
+            <span class="absolute top-1 left-2 font-mono text-[10px] opacity-50">Espacio</span>
+        </button>
+    </nav>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="/static/js/cocina.js?v=5"></script>
+{% endblock %}

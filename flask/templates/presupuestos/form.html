@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% set seccion = 'presupuestos' %}
+{% block title %}Nuevo Presupuesto{% endblock %}
+{% block content %}
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Nuevo Presupuesto</h1>
+    <p class="text-sm text-slate-500 mt-1">Completá los datos técnicos para generar el documento oficial.</p>
+</div>
+
+<!-- Grid de 2 columnas -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Columna Izquierda: Formulario (7 columnas) -->
+    <div class="lg:col-span-7 space-y-6">
+        <form action="/presupuestos/crear" method="POST" id="form-presupuesto" class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6 space-y-8">
+            
+            <!-- Datos del Cliente -->
+            <section>
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Datos del Cliente</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="cliente_nombre" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre del Cliente</label>
+                        <input type="text" id="cliente_nombre" name="cliente_nombre" placeholder="Ej: Juan García" required
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors">
+                    </div>
+                    <div>
+                        <label for="cliente_contacto" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contacto (Opcional)</label>
+                        <input type="text" id="cliente_contacto" name="cliente_contacto" placeholder="11-1234-5678 / juan@email.com"
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detalle Técnico -->
+            <section>
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Detalle del Servicio</h3>
+                </div>
+
+                <div class="mb-6">
+                    <label for="producto_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Producto / Equipo</label>
+                    <select id="producto_id" name="producto_id" required
+                            class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors cursor-pointer">
+                        <option value="">— Seleccioná un producto —</option>
+                        {% for prod in productos %}
+                        <option value="{{ prod.id }}" data-nombre="{{ prod.nombre }}">{{ prod.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Empty state antes de elegir producto -->
+                <div id="seleccion-producto-vacia" class="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center bg-slate-50/50 dark:bg-slate-900/50">
+                    <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <h3 class="text-sm font-medium text-slate-900 dark:text-white">Ningún equipo seleccionado</h3>
+                    <p class="mt-1 text-sm text-slate-500">Selecciona un producto arriba para cargar sus piezas y servicios disponibles.</p>
+                </div>
+
+                <div id="group-reparaciones" class="hidden mb-6">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Servicios y Tareas</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="lista-reparaciones">
+                        {% for tipo in tipos_reparacion %}
+                        <label class="item-reparacion flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors" data-id="{{ tipo.id }}" data-nombre="{{ tipo.nombre }}">
+                            <div class="flex items-center h-5">
+                                <input type="checkbox" name="reparaciones" value="{{ tipo.id }}" class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-2">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ tipo.nombre }}</span>
+                                <span class="text-xs text-slate-500 rep-precio-label"></span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="group-piezas" class="hidden mb-6">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Insumos y Repuestos</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="lista-piezas">
+                        {% for pieza in piezas %}
+                        <label class="item-pieza flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors" data-producto-id="{{ pieza.producto_id }}" data-id="{{ pieza.id }}" data-nombre="{{ pieza.nombre }}" data-precio="{{ pieza.costo_actual }}">
+                            <div class="flex items-center h-5">
+                                <input type="checkbox" name="piezas" value="{{ pieza.id }}" class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-2">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ pieza.nombre }}</span>
+                                <span class="text-xs text-slate-500">${{ "%.2f"|format(pieza.costo_actual) }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-slate-100 dark:border-slate-800 pt-6">
+                    <label for="urgencia" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nivel de Urgencia</label>
+                    <select id="urgencia" name="urgencia" required
+                            class="w-full sm:w-1/2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 cursor-pointer">
+                        <option value="Normal" data-recargo="0">Normal (sin recargo)</option>
+                        <option value="24hs" data-recargo="{{ recargos['24hs'] }}">24hs (+{{ recargos['24hs'] }}%)</option>
+                        <option value="Inmediato" data-recargo="{{ recargos['Inmediato'] }}">Inmediato (+{{ recargos['Inmediato'] }}%)</option>
+                    </select>
+                </div>
+
+            </section>
+
+            <div class="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <a href="/presupuestos" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700 transition-colors">Cancelar</a>
+                <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 transition-colors">
+                    Crear Presupuesto
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Columna Derecha: Factura/Ticket Preview (5 columnas) -->
+    <div class="lg:col-span-5 relative">
+        <div class="sticky top-6">
+            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Vista Previa del Ticket
+            </h3>
+            
+            <div class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-8 shadow-sm relative overflow-hidden" id="ticket-preview">
+                <!-- Watermark -->
+                <div class="absolute -right-6 -bottom-6 opacity-5 pointer-events-none">
+                    <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" /></svg>
+                </div>
+
+                <div class="text-center mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-xl font-bold text-slate-800">{{ config_alias.negocio | default('Mi Negocio') }}</h2>
+                    <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Presupuesto Oficial</p>
+                </div>
+
+                <div class="space-y-4 mb-6 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Cliente:</span>
+                        <span class="font-medium text-slate-900" id="ticket-cliente">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Equipo:</span>
+                        <span class="font-medium text-slate-900" id="ticket-producto">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Urgencia:</span>
+                        <span class="font-medium text-slate-900" id="ticket-urgencia">Normal</span>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4 mb-6">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Detalle de Conceptos</p>
+                    <ul id="ticket-items" class="space-y-2 text-sm text-slate-700 min-h-[100px]">
+                        <li class="text-slate-400 italic text-center py-4">No hay ítems seleccionados</li>
+                    </ul>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4 space-y-2 text-sm">
+                    <div class="flex justify-between text-slate-500">
+                        <span>Subtotal:</span>
+                        <span id="ticket-subtotal">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500" id="ticket-recargo-row" style="display: none;">
+                        <span>Recargo (<span id="ticket-recargo-pct">0</span>%):</span>
+                        <span id="ticket-recargo-monto">+$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-200 pt-3 mt-3">
+                        <span class="font-bold text-slate-800 uppercase tracking-wide">Total a Pagar:</span>
+                        <span class="text-2xl font-bold text-blue-600" id="ticket-total">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Documento Válido por 15 días</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Premium de sugerencia de piezas (Tailwind version) -->
+<div id="modal-sugerencia" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm modal-backdrop"></div>
+    <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-[90%] max-w-md p-6 transform scale-95 transition-transform duration-300">
+        <div class="flex flex-col items-center text-center mb-6">
+            <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h4 class="text-lg font-bold text-slate-900 dark:text-white">Insumos Sugeridos</h4>
+        </div>
+        
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4 text-center">
+            La tarea <strong id="sug-nombre-reparacion" class="text-blue-600 dark:text-blue-400"></strong> suele requerir:
+        </p>
+        
+        <ul id="lista-sugerencias-piezas" class="space-y-2 mb-6 max-h-48 overflow-y-auto px-2">
+            <!-- Cargado dinámicamente -->
+        </ul>
+        
+        <p class="text-xs font-medium text-slate-500 text-center mb-6">
+            ¿Deseas agregarlos automáticamente al presupuesto?
+        </p>
+        
+        <div class="flex gap-3 justify-center">
+            <button type="button" id="btn-sug-cancelar" class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">No, solo la tarea</button>
+            <button type="button" id="btn-sug-aceptar" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">Sí, agregarlos</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data structures
+    const sugerencias = {{ sugerencias|tojson|safe if sugerencias else '{}' }};
+    const tiposPorProducto = {{ tipos_por_producto|tojson|safe if tipos_por_producto else '{}' }};
+    
+    // DOM Elements
+    const form = document.getElementById('form-presupuesto');
+    const inputCliente = document.getElementById('cliente_nombre');
+    const selectProducto = document.getElementById("producto_id");
+    const selectUrgencia = document.getElementById('urgencia');
+    
+    const emptyState = document.getElementById("seleccion-producto-vacia");
+    const groupPiezas = document.getElementById("group-piezas");
+    const groupReparaciones = document.getElementById("group-reparaciones");
+    const piezasList = document.getElementById("lista-piezas");
+    const reparacionesList = document.getElementById("lista-reparaciones");
+    
+    // Ticket Elements
+    const tCliente = document.getElementById('ticket-cliente');
+    const tProducto = document.getElementById('ticket-producto');
+    const tUrgencia = document.getElementById('ticket-urgencia');
+    const tItems = document.getElementById('ticket-items');
+    const tSubtotal = document.getElementById('ticket-subtotal');
+    const tRecargoRow = document.getElementById('ticket-recargo-row');
+    const tRecargoPct = document.getElementById('ticket-recargo-pct');
+    const tRecargoMonto = document.getElementById('ticket-recargo-monto');
+    const tTotal = document.getElementById('ticket-total');
+    
+    // Modal Elements
+    const modal = document.getElementById("modal-sugerencia");
+    const modalContent = modal.querySelector('div:nth-child(2)');
+    const modalReparacionName = document.getElementById("sug-nombre-reparacion");
+    const modalPiezasList = document.getElementById("lista-sugerencias-piezas");
+    const btnAceptar = document.getElementById("btn-sug-aceptar");
+    const btnCancelar = document.getElementById("btn-sug-cancelar");
+    let activeSugerencias = [];
+
+    // State
+    let currentReparacionPrices = {}; // id -> precio
+
+    // Helper formatter
+    const formatCurrency = (val) => '$' + parseFloat(val).toFixed(2);
+
+    // Update Live Ticket
+    function updateTicket() {
+        tCliente.textContent = inputCliente.value.trim() || '--';
+        tProducto.textContent = selectProducto.options[selectProducto.selectedIndex]?.text || '--';
+        tUrgencia.textContent = selectUrgencia.options[selectUrgencia.selectedIndex]?.text.split('(')[0].trim() || 'Normal';
+        
+        let subtotal = 0;
+        tItems.innerHTML = '';
+        
+        // Collect checked repairs
+        document.querySelectorAll(".item-reparacion input:checked").forEach(cb => {
+            const row = cb.closest('.item-reparacion');
+            const id = cb.value;
+            const nombre = row.getAttribute('data-nombre');
+            const precio = currentReparacionPrices[id] || 0;
+            subtotal += precio;
+            
+            const li = document.createElement('li');
+            li.className = "flex justify-between";
+            li.innerHTML = `<span><span class="text-blue-500 mr-2">🔧</span>${nombre}</span> <span class="font-medium text-slate-900">${formatCurrency(precio)}</span>`;
+            tItems.appendChild(li);
+        });
+
+        // Collect checked pieces
+        document.querySelectorAll(".item-pieza input:checked").forEach(cb => {
+            const row = cb.closest('.item-pieza');
+            const nombre = row.getAttribute('data-nombre');
+            const precio = parseFloat(row.getAttribute('data-precio') || 0);
+            subtotal += precio;
+            
+            const li = document.createElement('li');
+            li.className = "flex justify-between";
+            li.innerHTML = `<span><span class="text-amber-500 mr-2">📦</span>${nombre}</span> <span class="font-medium text-slate-900">${formatCurrency(precio)}</span>`;
+            tItems.appendChild(li);
+        });
+        
+        if (tItems.children.length === 0) {
+            tItems.innerHTML = '<li class="text-slate-400 italic text-center py-4">No hay ítems seleccionados</li>';
+        }
+
+        tSubtotal.textContent = formatCurrency(subtotal);
+        
+        const recargoPct = parseInt(selectUrgencia.options[selectUrgencia.selectedIndex].getAttribute('data-recargo') || 0);
+        let recargoMonto = 0;
+        
+        if (recargoPct > 0) {
+            recargoMonto = subtotal * (recargoPct / 100);
+            tRecargoRow.style.display = 'flex';
+            tRecargoPct.textContent = recargoPct;
+            tRecargoMonto.textContent = '+' + formatCurrency(recargoMonto);
+        } else {
+            tRecargoRow.style.display = 'none';
+        }
+        
+        tTotal.textContent = formatCurrency(subtotal + recargoMonto);
+    }
+
+    // Bind inputs to ticket update
+    inputCliente.addEventListener('input', updateTicket);
+    selectUrgencia.addEventListener('change', updateTicket);
+    
+    // Visibility toggle when changing product
+    function updateVisibility() {
+        const prodId = selectProducto.value;
+        if (!prodId) {
+            emptyState.style.display = "block";
+            groupPiezas.style.display = "none";
+            groupReparaciones.style.display = "none";
+            document.querySelectorAll("#lista-piezas input, #lista-reparaciones input").forEach(cb => cb.checked = false);
+            updateTicket();
+            return;
+        }
+        
+        emptyState.style.display = "none";
+        currentReparacionPrices = {};
+        
+        // Filter Pieces
+        let visiblePiezasCount = 0;
+        document.querySelectorAll(".item-pieza").forEach(item => {
+            if (item.getAttribute("data-producto-id") === prodId) {
+                item.style.display = "flex";
+                visiblePiezasCount++;
+            } else {
+                item.style.display = "none";
+                item.querySelector("input").checked = false;
+            }
+        });
+        groupPiezas.style.display = "block";
+        
+        // Filter Repairs
+        const allowedReps = tiposPorProducto[prodId] || []; // Array of {id, precio}
+        const allowedRepIds = allowedReps.map(r => r.id.toString());
+        allowedReps.forEach(r => { currentReparacionPrices[r.id] = r.precio; });
+        
+        let visibleRepsCount = 0;
+        document.querySelectorAll(".item-reparacion").forEach(item => {
+            const repId = item.getAttribute("data-id");
+            if (allowedRepIds.includes(repId)) {
+                item.style.display = "flex";
+                item.querySelector('.rep-precio-label').textContent = formatCurrency(currentReparacionPrices[repId]);
+                visibleRepsCount++;
+            } else {
+                item.style.display = "none";
+                item.querySelector("input").checked = false;
+            }
+        });
+        groupReparaciones.style.display = "block";
+        
+        updateTicket();
+    }
+    
+    selectProducto.addEventListener("change", updateVisibility);
+    
+    // Checkbox events
+    document.querySelectorAll(".item-pieza input").forEach(cb => {
+        cb.addEventListener('change', updateTicket);
+    });
+
+    document.querySelectorAll(".item-reparacion input").forEach(cb => {
+        cb.addEventListener("change", function() {
+            updateTicket(); // update ticket immediately
+            
+            // Modal Logic
+            if (this.checked) {
+                const repId = this.value;
+                const repLabel = this.closest(".item-reparacion");
+                const repNombre = repLabel.getAttribute("data-nombre");
+                const associatedPieceIds = sugerencias[repId] || [];
+                const prodId = selectProducto.value;
+                
+                const piecesToSuggest = [];
+                associatedPieceIds.forEach(pId => {
+                    const piezaEl = document.querySelector(`.item-pieza[data-id='${pId}'][data-producto-id='${prodId}']`);
+                    if (piezaEl) {
+                        const cbPieza = piezaEl.querySelector("input");
+                        if (!cbPieza.checked) {
+                            piecesToSuggest.push({
+                                id: pId,
+                                nombre: piezaEl.getAttribute("data-nombre"),
+                                checkbox: cbPieza
+                            });
+                        }
+                    }
+                });
+                
+                if (piecesToSuggest.length > 0) {
+                    modalReparacionName.textContent = repNombre;
+                    modalPiezasList.innerHTML = "";
+                    piecesToSuggest.forEach(p => {
+                        const li = document.createElement("li");
+                        li.className = "p-2 bg-slate-50 dark:bg-slate-800 rounded-md text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2";
+                        li.innerHTML = `<span class="text-amber-500">⚙️</span> ${p.nombre}`;
+                        modalPiezasList.appendChild(li);
+                    });
+                    
+                    activeSugerencias = piecesToSuggest;
+                    
+                    // Show modal
+                    modal.classList.remove('pointer-events-none', 'opacity-0');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                }
+            }
+        });
+    });
+    
+    function closeModal() {
+        modal.classList.add('pointer-events-none', 'opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+    }
+
+    btnAceptar.addEventListener("click", function() {
+        activeSugerencias.forEach(p => {
+            p.checkbox.checked = true;
+            const row = p.checkbox.closest(".item-pieza");
+            row.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50', 'dark:bg-emerald-900/20');
+            setTimeout(() => {
+                row.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50', 'dark:bg-emerald-900/20');
+            }, 1000);
+        });
+        updateTicket();
+        closeModal();
+    });
+    
+    btnCancelar.addEventListener("click", closeModal);
+    document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
+
+    // Initial render
+    updateVisibility();
+</script>
+{% endblock %}

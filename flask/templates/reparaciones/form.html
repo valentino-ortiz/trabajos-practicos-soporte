@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% set seccion = 'reparaciones' %}
+{% block title %}{{ 'Editar' if tipo else 'Nuevo' }} Tipo de Reparación{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ 'Editar Tipo de Reparación' if tipo else 'Nuevo Tipo de Reparación' }}</h2>
+
+    <form action="{{ '/tipos-reparacion/' + tipo.id|string + '/actualizar' if tipo else '/tipos-reparacion/crear' }}"
+          method="POST" class="styled-form">
+
+        <div class="form-group">
+            <label for="nombre">Nombre del Tipo de Reparación</label>
+            <input type="text" id="nombre" name="nombre"
+                   value="{{ tipo.nombre if tipo else '' }}"
+                   placeholder="Ej: Cambio de pantalla, Limpieza interna, Cambio de batería"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label>Componentes (Piezas) asociados</label>
+            <p class="hint" style="margin-bottom: 12px;">
+                Seleccioná las piezas de cada producto que suelen requerirse para esta reparación.
+            </p>
+            <div class="product-pieces-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 16px; background: #f8fafc;">
+                {% for prod_id, prod_data in piezas_por_producto.items() %}
+                <div class="product-group" style="margin-bottom: 16px;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        📱 {{ prod_data.nombre }}
+                    </h4>
+                    <div class="check-grid-horizontal" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;">
+                        {% for pieza in prod_data.piezas %}
+                        <label class="check-item" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem;">
+                            <input type="checkbox" name="piezas" value="{{ pieza.id }}"
+                                   {% if pieza.id in piezas_asociadas %}checked{% endif %}
+                                   style="width: 16px; height: 16px; accent-color: var(--primary-color);">
+                            <span>{{ pieza.nombre }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-sm" style="text-align: center; padding: 12px 0;">No hay piezas activas registradas.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/tipos-reparacion" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Actualizar' if tipo else 'Guardar' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

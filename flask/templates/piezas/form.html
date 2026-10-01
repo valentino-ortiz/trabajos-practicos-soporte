@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% set seccion = 'piezas' %}
+{% block title %}{{ 'Editar' if pieza else 'Nueva' }} Pieza{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ 'Editar Pieza' if pieza else 'Nueva Pieza' }}</h2>
+
+    <form action="{{ '/piezas/' + pieza.id|string + '/actualizar' if pieza else '/piezas/crear' }}"
+          method="POST" class="styled-form">
+
+        <div class="form-group">
+            <label for="nombre">Nombre de la Pieza</label>
+            <input type="text" id="nombre" name="nombre"
+                   value="{{ pieza.nombre if pieza else '' }}"
+                   placeholder="Ej: Pantalla LCD, Batería, Puerto USB-C"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="producto_id">Producto al que pertenece</label>
+            <select id="producto_id" name="producto_id" required>
+                <option value="">— Seleccioná un producto —</option>
+                {% for prod in productos %}
+                <option value="{{ prod.id }}"
+                    {{ 'selected' if pieza and pieza.producto_id == prod.id }}>
+                    {{ prod.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if not pieza %}
+        <div class="form-group">
+            <label for="costo">Costo inicial ($)</label>
+            <input type="number" id="costo" name="costo"
+                   min="0" step="0.01"
+                   placeholder="Ej: 1500.00"
+                   required>
+            <p class="hint">Este será el precio de costo vigente desde hoy.</p>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="/piezas" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Actualizar' if pieza else 'Guardar Pieza' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

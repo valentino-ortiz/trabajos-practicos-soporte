@@ -1,0 +1,18 @@
+TREMORSCOPE - Resultado de la medicion
+Fecha: 2026-09-27 20:05
+
+Tu mano temblo unas 4.3 veces por segundo.
+Movimiento: 7.8.
+Sin medicion de reposo: apreta [B] con la mano quieta para poder comparar.
+Grado: MODERADO. movimiento claro; si te preocupa, consultalo.
+Calidad de la medicion: BAJA.
+Confianza: 51/100 (MEDIA).
+- Ojo: pico brusco en la señal.
+- Ojo: pérdida importante de frames.
+- Ojo: re-sembrado durante la medición.
+- Ojo: SNR bajo.
+VENTANA CONTAMINADA: repeti la medicion bien quieto.
+Ventana analizada: 12.0 segundos.
+
+Esto NO es un diagnostico medico.
+Datos tecnicos: reports/reporte_20260927_200514.json

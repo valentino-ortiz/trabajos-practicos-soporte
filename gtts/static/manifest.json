@@ -1,0 +1,21 @@
+{
+  "name": "ChefVoz",
+  "short_name": "ChefVoz",
+  "description": "Guía de recetas paso a paso con voz. ¡Cocina sin tocar la pantalla!",
+  "start_url": "/editor",
+  "display": "standalone",
+  "background_color": "#0f0f13",
+  "theme_color": "#1a1a1a",
+  "lang": "es",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["food", "lifestyle", "utilities"]
+}

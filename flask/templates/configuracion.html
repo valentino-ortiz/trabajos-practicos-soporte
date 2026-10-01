@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% set seccion = 'configuracion' %}
+{% block title %}Configuración del Negocio{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h2>⚙️ Configuración del Negocio</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 24px;">
+        Ajustá el nombre del negocio, los términos que utilizas, el margen de ganancia y los recargos por urgencia.
+        Los cambios aplican a todo el sistema.
+    </p>
+
+    <form action="/configuracion" method="POST" class="styled-form">
+        <h3 style="margin-bottom: 16px;">Terminología y Marca</h3>
+        
+        <div class="form-group">
+            <label for="nombre_negocio">Nombre del Negocio</label>
+            <input type="text" id="nombre_negocio" name="nombre_negocio"
+                   value="{{ cfg.nombre_negocio }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="alias_servicios">Alias de Reparaciones / Servicios</label>
+            <input type="text" id="alias_servicios" name="alias_servicios"
+                   value="{{ cfg.alias_servicios }}" required>
+            <p class="hint">Ej: "Reparaciones", "Servicios", "Tareas"</p>
+        </div>
+
+        <div class="form-group">
+            <label for="alias_insumos">Alias de Piezas / Insumos</label>
+            <input type="text" id="alias_insumos" name="alias_insumos"
+                   value="{{ cfg.alias_insumos }}" required>
+            <p class="hint">Ej: "Piezas", "Materiales", "Insumos"</p>
+        </div>
+
+        <div class="form-group">
+            <label for="alias_proyectos">Alias de Productos / Proyectos</label>
+            <input type="text" id="alias_proyectos" name="alias_proyectos"
+                   value="{{ cfg.alias_proyectos }}" required>
+            <p class="hint">Ej: "Productos", "Proyectos", "Equipos"</p>
+        </div>
+
+        <div class="section-divider"></div>
+        <h3 style="margin-bottom: 16px;">Márgenes y Precios</h3>
+        <div class="form-group">
+            <label for="margen_ganancia">Margen de Ganancia (%)</label>
+            <input type="number" id="margen_ganancia" name="margen_ganancia"
+                   min="0" max="999" step="1"
+                   value="{{ cfg.margen_ganancia }}"
+                   required>
+            <p class="hint">Se aplica sobre el subtotal base (piezas + mano de obra).</p>
+        </div>
+
+        <div class="section-divider"></div>
+        <h3 style="margin-bottom: 16px;">Recargos por Urgencia</h3>
+
+        <div class="form-group">
+            <label for="recargo_Normal">Urgencia Normal (%)</label>
+            <input type="number" id="recargo_Normal" name="recargo_Normal"
+                   min="0" max="999" step="1"
+                   value="{{ cfg.recargo_Normal }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="recargo_24hs">Urgencia 24hs (%)</label>
+            <input type="number" id="recargo_24hs" name="recargo_24hs"
+                   min="0" max="999" step="1"
+                   value="{{ cfg.recargo_24hs }}"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="recargo_Inmediato">Urgencia Inmediato (%)</label>
+            <input type="number" id="recargo_Inmediato" name="recargo_Inmediato"
+                   min="0" max="999" step="1"
+                   value="{{ cfg.recargo_Inmediato }}"
+                   required>
+        </div>
+
+        <div class="form-actions">
+            <a href="/" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

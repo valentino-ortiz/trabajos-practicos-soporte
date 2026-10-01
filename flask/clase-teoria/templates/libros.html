@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Listado de Libros</h1>
+</div>
+
+<div class="table-container">
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Reseña</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for id, titulo, resena in libros %}
+            <tr>
+                <td>{{ id }}</td>
+                <td><strong><a href="/libros/{{ id }}" class="book-link">{{ titulo }}</a></strong></td>
+                <td><span class="truncate">{{ resena }}</span></td>
+                <td class="actions">
+                    <a href="/edit/{{ id }}" class="btn btn-sm btn-outline">Editar</a>
+                    <form action="/delete/{{ id }}" method="POST" class="inline-form" onsubmit="return confirm('¿Seguro que deseas eliminar este libro?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center empty-state">No hay libros registrados aún.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

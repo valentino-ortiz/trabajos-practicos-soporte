@@ -1,0 +1,65 @@
+<ButtonNum@Button>:
+    on_release: app.presionar_numero(self.text)
+
+<ButtonOp@Button>:
+    on_release: app.presionar_operacion(self.text)
+
+<ButtonIgual@Button>:
+    on_release: app.presionar_igual()
+
+<ButtonClear@Button>:
+    on_release: app.presionar_clear()
+
+
+BoxLayout:
+    orientation: 'vertical'
+
+    TextInput:
+        id: entrada
+        text: ''
+        font_size: 64
+        readonly: True
+        halign: 'right'
+        multiline: False
+        size_hint_y: 0.2
+
+    GridLayout:
+        spacing: 5
+        padding: 5
+        cols: 4
+        
+        ButtonNum:
+            text: "7"
+        ButtonNum:
+            text: "8"
+        ButtonNum:
+            text: "9"
+        ButtonOp:
+            text: "/"
+            
+        ButtonNum:
+            text: "4"
+        ButtonNum:
+            text: "5"
+        ButtonNum:
+            text: "6"
+        ButtonOp:
+            text: "*"
+            
+        ButtonNum:
+            text: "1"
+        ButtonNum:
+            text: "2"
+        ButtonNum:
+            text: "3"
+        ButtonOp:
+            text: "-"
+            
+        ButtonClear:
+            text: "C"
+        ButtonNum:
+            text: "0"
+        ButtonIgual:
+            text: "="
+        ButtonOp:
+            text: "+"

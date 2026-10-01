@@ -1,0 +1,24 @@
+TREMORSCOPE - Resultado de la medicion
+Fecha: 2026-09-27 21:10
+
+Tu mano temblo unas 3.5 veces por segundo.
+Movimiento: 0.7.
+En reposo: 0.3. O sea, se movio 2.5 veces mas que quieta.
+Grado: IMPERCEPTIBLE. casi no se detecta movimiento.
+Calidad de la medicion: BAJA.
+Confianza: 65/100 (MEDIA).
+- Ojo: pérdida importante de frames.
+- Ojo: SNR bajo.
+VENTANA CONTAMINADA: repeti la medicion bien quieto.
+
+FORMA DE LA OSCILACION:
+  Tipo detectado : ERRATICO (frecuencia o amplitud variable)
+  Ritmo inter-ciclo: muy irregular (ICV=0.672; ideal para una senoide seria ~0.00).
+  Factor de cresta: 4.16 (alto: picos bruscos; senoide pura = 1.41).
+  Armonicos (2f+3f): pocos (forma simple) (ratio=0.073).
+  Estabilidad de frecuencia: inestable (variacion=1.104 Hz).
+
+Ventana analizada: 12.0 segundos.
+
+Esto NO es un diagnostico medico.
+Datos tecnicos: reports/reporte_20260927_211006.json

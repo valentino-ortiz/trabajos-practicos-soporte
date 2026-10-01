@@ -1,0 +1,18 @@
+TREMORSCOPE - Resultado de la medicion
+Fecha: 2026-09-27 20:14
+
+Tu mano temblo unas 6.1 veces por segundo.
+Movimiento: 0.5.
+En reposo: 1.4. O sea, se movio 0.3 veces mas que quieta.
+Grado: IMPERCEPTIBLE. casi no se detecta movimiento.
+Calidad de la medicion: BAJA.
+Confianza: 50/100 (MEDIA).
+- Ojo: pico brusco en la señal.
+- Ojo: pérdida importante de frames.
+- Ojo: SNR bajo.
+- Ojo: frecuencia inestable entre ventanas.
+VENTANA CONTAMINADA: repeti la medicion bien quieto.
+Ventana analizada: 12.0 segundos.
+
+Esto NO es un diagnostico medico.
+Datos tecnicos: reports/reporte_20260927_201443.json

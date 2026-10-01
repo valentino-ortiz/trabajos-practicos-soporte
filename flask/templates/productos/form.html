@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% set seccion = 'productos' %}
+{% block title %}{{ 'Editar' if producto else 'Nuevo' }} Producto{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ 'Editar Producto' if producto else 'Nuevo Producto' }}</h2>
+
+    <form action="{{ '/productos/' + producto.id|string + '/actualizar' if producto else '/productos/crear' }}"
+          method="POST" class="styled-form">
+
+        <div class="form-group">
+            <label for="nombre">Nombre del Producto</label>
+            <input type="text" id="nombre" name="nombre"
+                   value="{{ producto.nombre if producto else '' }}"
+                   placeholder="Ej: iPhone 14, Notebook HP, Auriculares Sony"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="categoria_id">Categoría</label>
+            <select id="categoria_id" name="categoria_id" required>
+                <option value="">— Seleccioná una categoría —</option>
+                {% for c in categorias %}
+                <option value="{{ c.id }}"
+                    {{ 'selected' if producto and producto.categoria_id == c.id }}>
+                    {{ c.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if not categorias %}
+            <p class="hint">⚠️ Primero debes crear al menos una
+                <a href="/categorias/nueva">categoría</a>.
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <a href="/productos" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Actualizar' if producto else 'Guardar' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

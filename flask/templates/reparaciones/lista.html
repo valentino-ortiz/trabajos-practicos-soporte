@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% set seccion = 'reparaciones' %}
+{% block title %}Tipos de Reparación{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Tipos de Reparación</h1>
+    <a href="/tipos-reparacion/nuevo" class="btn btn-primary">+ Nuevo Tipo</a>
+</div>
+
+<div class="table-container">
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tipos %}
+            <tr>
+                <td class="text-muted text-sm">{{ t.id }}</td>
+                <td><strong>{{ t.nombre }}</strong></td>
+                <td>
+                    {% if t.activo %}
+                        <span class="badge badge-active">Activo</span>
+                    {% else %}
+                        <span class="badge badge-inactive">Baja</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <a href="/tipos-reparacion/{{ t.id }}/editar" class="btn btn-sm btn-outline">Editar</a>
+                    {% if t.activo %}
+                    <a href="/tipos-reparacion/{{ t.id }}/precio" class="btn btn-sm btn-warning">💲 Precios</a>
+                    <form action="/tipos-reparacion/{{ t.id }}/baja" method="POST" class="inline-form"
+                          onsubmit="return confirm('¿Dar de baja «{{ t.nombre }}»?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Dar de baja</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="empty-state">No hay tipos de reparación registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

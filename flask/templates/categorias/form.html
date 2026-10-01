@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% set seccion = 'categorias' %}
+{% block title %}{{ 'Editar' if categoria else 'Nueva' }} Categoría{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ 'Editar Categoría' if categoria else 'Nueva Categoría' }}</h2>
+
+    <form action="{{ '/categorias/' + categoria.id|string + '/actualizar' if categoria else '/categorias/crear' }}"
+          method="POST" class="styled-form">
+
+        <div class="form-group">
+            <label for="nombre">Nombre de la Categoría</label>
+            <input type="text" id="nombre" name="nombre"
+                   value="{{ categoria.nombre if categoria else '' }}"
+                   placeholder="Ej: Telefonía, Computación, Audio"
+                   required>
+        </div>
+
+        <div class="form-actions">
+            <a href="/categorias" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Actualizar' if categoria else 'Guardar' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

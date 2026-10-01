@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editor de Recetas - ChefVoz{% endblock %}
+
+{% block contenido %}
+<div class="editor-contenedor">
+    <!-- Encabezado de la página -->
+    <header class="editor-header">
+        <h1 class="editor-titulo">📋 Mis Recetas</h1>
+        <p class="editor-subtitulo">Agrega recetas y cocina paso a paso con guía de voz</p>
+    </header>
+
+    <!-- Formulario de nueva receta -->
+    <section class="card seccion-nueva-receta" aria-labelledby="titulo-nueva-receta">
+        <h2 id="titulo-nueva-receta" class="card-titulo">➕ Nueva Receta</h2>
+
+        <div class="form-tabs" role="tablist" aria-label="Método de carga">
+            <button class="tab-btn activo" id="tab-texto" role="tab"
+                    aria-selected="true" aria-controls="panel-texto"
+                    onclick="cambiarTab('texto')">
+            📝 Entrada Manual
+        </button>
+        <button class="tab-btn" id="tab-url" role="tab"
+                aria-selected="false" aria-controls="panel-url"
+                onclick="cambiarTab('url')">
+            🔗 Desde URL
+        </button>
+    </div>
+
+    <div id="panel-texto" class="tab-panel" role="tabpanel" aria-labelledby="tab-texto">
+        <label for="manual-titulo" class="form-label">Título de la receta</label>
+        <input type="text" id="manual-titulo" class="form-input" placeholder="Ej: Tarta de Manzana" style="margin-bottom: 1rem;">
+        
+        <label for="manual-ingredientes" class="form-label">🥗 Ingredientes (uno por línea)</label>
+        <textarea id="manual-ingredientes" class="form-textarea" rows="4" placeholder="3 manzanas verdes&#10;200g de azúcar" style="margin-bottom: 1rem;"></textarea>
+        
+        <label for="manual-pasos" class="form-label">👨‍🍳 Pasos de preparación (separa cada paso con un salto de línea)</label>
+        <textarea id="manual-pasos" class="form-textarea" rows="6" placeholder="Paso 1: Pelar las manzanas..."></textarea>
+    </div>
+
+        <div id="panel-url" class="tab-panel oculto" role="tabpanel" aria-labelledby="tab-url">
+            <label for="url-receta" class="form-label">URL de la receta:</label>
+            <input type="url" id="url-receta" class="form-input"
+                   placeholder="https://ejemplo.com/receta-de-tarta"
+                   aria-describedby="url-ayuda">
+            <small id="url-ayuda" class="form-ayuda">
+                Ingresa la URL de cualquier página de receta
+            </small>
+        </div>
+
+        <div class="form-acciones">
+            <button id="btn-preview" class="btn btn-secundario" onclick="previsualizarReceta()">
+                🔍 Previsualizar
+            </button>
+            <button id="btn-guardar" class="btn btn-primario" onclick="guardarReceta()" disabled>
+                💾 Guardar Receta
+            </button>
+        </div>
+    </section>
+
+    <!-- Sección de preview -->
+    <section id="seccion-preview" class="card seccion-preview oculto" aria-live="polite">
+        <h2 class="card-titulo">👀 Vista Previa</h2>
+        <div id="preview-contenido">
+            <!-- Se rellena dinámicamente con JS -->
+        </div>
+    </section>
+
+    <!-- Lista de recetas guardadas -->
+    <section class="seccion-recetas" aria-labelledby="titulo-recetas">
+        <h2 id="titulo-recetas" class="seccion-titulo">🍳 Recetas Guardadas</h2>
+
+        <div id="estado-carga-recetas" class="estado-vacio" aria-live="polite">
+            <div class="spinner" aria-label="Cargando recetas..."></div>
+            <p>Cargando recetas...</p>
+        </div>
+
+        <div id="lista-recetas" class="grid-recetas" role="list">
+            <!-- Se rellena dinámicamente con JS -->
+        </div>
+    </section>
+</div>
+
+<!-- Toast de notificaciones -->
+<div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="/static/js/editor.js"></script>
+{% endblock %}

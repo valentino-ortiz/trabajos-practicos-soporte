@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <h2>Editar Libro</h2>
+    <form action="/update/{{ _id }}" method="POST" class="styled-form">
+        <div class="form-group">
+            <label for="libro">Título del Libro</label>
+            <input type="text" id="libro" name="libro" value="{{ libro }}" required>
+        </div>
+        <div class="form-group">
+            <label for="reseña">Reseña</label>
+            <textarea id="reseña" name="reseña" rows="5" required>{{ reseña }}</textarea>
+        </div>
+        <div class="form-actions">
+            <a href="/" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Actualizar Libro</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

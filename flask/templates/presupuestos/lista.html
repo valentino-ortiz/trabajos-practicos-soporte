@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% set seccion = 'presupuestos' %}
+{% block title %}Presupuestos{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h1>Presupuestos</h1>
+    <a href="/presupuestos/nuevo" class="btn btn-primary">+ Nuevo Presupuesto</a>
+</div>
+
+<div class="table-container">
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Urgencia</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in presupuestos %}
+            <tr>
+                <td class="text-muted text-sm">{{ p.id }}</td>
+                <td>
+                    <strong>{{ p.cliente_nombre }}</strong>
+                    {% if p.cliente_contacto %}
+                    <br><span class="text-muted text-sm">{{ p.cliente_contacto }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-muted">{{ p.producto_nombre }}</td>
+                <td>
+                    {% if p.urgencia == 'Inmediato' %}
+                        <span class="badge badge-rejected">{{ p.urgencia }}</span>
+                    {% elif p.urgencia == '24hs' %}
+                        <span class="badge badge-pending">{{ p.urgencia }}</span>
+                    {% else %}
+                        <span class="badge badge-inactive">{{ p.urgencia }}</span>
+                    {% endif %}
+                </td>
+                <td><strong>${{ "%.2f"|format(p.total) }}</strong></td>
+                <td>
+                    {% if p.estado == 'Pendiente' %}
+                        <span class="badge badge-pending">Pendiente</span>
+                    {% elif p.estado == 'Aceptado' %}
+                        <span class="badge badge-accepted">Aceptado</span>
+                    {% elif p.estado == 'Rechazado' %}
+                        <span class="badge badge-rejected">Rechazado</span>
+                    {% elif p.estado == 'Terminado' %}
+                        <span class="badge badge-done">Terminado</span>
+                    {% endif %}
+                </td>
+                <td class="text-muted text-sm">{{ p.fecha_creacion[:10] }}</td>
+                <td class="actions">
+                    <a href="/presupuestos/{{ p.id }}" class="btn btn-sm btn-outline">Ver</a>
+                    {% if p.estado == 'Pendiente' %}
+                    <form action="/presupuestos/{{ p.id }}/estado" method="POST" class="inline-form">
+                        <input type="hidden" name="estado" value="Aceptado">
+                        <button type="submit" class="btn btn-sm btn-success">✓ Aceptar</button>
+                    </form>
+                    <form action="/presupuestos/{{ p.id }}/estado" method="POST" class="inline-form"
+                          onsubmit="return confirm('¿Rechazar el presupuesto #{{ p.id }}?');">
+                        <input type="hidden" name="estado" value="Rechazado">
+                        <button type="submit" class="btn btn-sm btn-danger">✗ Rechazar</button>
+                    </form>
+                    {% elif p.estado == 'Aceptado' %}
+                    <form action="/presupuestos/{{ p.id }}/estado" method="POST" class="inline-form">
+                        <input type="hidden" name="estado" value="Terminado">
+                        <button type="submit" class="btn btn-sm btn-primary">✔ Terminado</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="empty-state">No hay presupuestos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

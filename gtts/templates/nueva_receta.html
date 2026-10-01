@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block titulo %}ChefVoz - Nueva Receta{% endblock %}
+{% block body_class %}flex flex-col{% endblock %}
+
+{% block contenido %}
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 backdrop-blur-md bg-surface-container-high/80 dark:bg-surface-container-high/80 shadow-sm">
+    <div class="flex justify-between items-center px-md md:px-margin-desktop py-sm max-w-full">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary dark:text-primary text-3xl">restaurant</span>
+            <span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">ChefVoz</span>
+        </div>
+        <div class="hidden md:flex items-center gap-6">
+            <a class="text-on-surface-variant dark:text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/50 transition-colors px-3 py-2 rounded-md" href="/">Mis Recetas</a>
+            <a class="text-on-surface-variant dark:text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/50 transition-colors px-3 py-2 rounded-md" href="#">Explorar</a>
+            <a class="text-on-surface-variant dark:text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/50 transition-colors px-3 py-2 rounded-md" href="#">Favoritos</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95 duration-150 p-2">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+            <button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95 duration-150 p-2">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="flex-grow pt-[100px] pb-2xl px-margin-mobile md:px-margin-desktop flex flex-col items-center">
+    <!-- Header Section -->
+    <div class="text-center mb-xl max-w-2xl w-full">
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <span class="material-symbols-outlined text-5xl text-primary-container" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+            <h1 class="font-display-lg text-display-lg text-primary-container">Nueva Receta</h1>
+        </div>
+        <p class="font-body-lg text-body-lg text-on-surface-variant">Agrega recetas y cocina paso a paso con guía de voz</p>
+    </div>
+
+    <!-- Recipe Form Card -->
+    <div class="bg-surface-container border border-surface-variant rounded-xl w-full max-w-3xl p-lg md:p-xl shadow-lg">
+        <div class="flex items-center gap-2 mb-lg border-b border-outline-variant pb-4">
+            <span class="material-symbols-outlined text-primary">add</span>
+            <h2 class="font-headline-md text-headline-md text-primary">Detalles de la Receta</h2>
+        </div>
+
+        <!-- Input Tabs -->
+        <div class="grid grid-cols-2 gap-2 mb-lg bg-surface-container-highest p-1 rounded-lg">
+            <button class="bg-surface-container-high text-on-surface py-2 px-4 rounded-md font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm tab-btn activo" id="tab-texto" onclick="cambiarTab('texto')">
+                <span class="material-symbols-outlined text-[18px]">edit_document</span>
+                Entrada Manual
+            </button>
+            <button class="text-on-surface-variant hover:bg-surface-variant/50 py-2 px-4 rounded-md font-label-md text-label-md flex items-center justify-center gap-2 transition-colors tab-btn" id="tab-url" onclick="cambiarTab('url')">
+                <span class="material-symbols-outlined text-[18px]">link</span>
+                Desde URL
+            </button>
+        </div>
+
+        <form class="space-y-lg" onsubmit="event.preventDefault();">
+            
+            <!-- Panel Manual -->
+            <div id="panel-texto" class="tab-panel space-y-lg">
+                <!-- Title Input -->
+                <div class="space-y-2">
+                    <label class="block font-label-md text-label-md text-on-surface-variant">Título de la receta</label>
+                    <input id="manual-titulo" class="w-full bg-background border border-surface-variant rounded-md px-4 py-3 text-on-surface font-body-md placeholder:text-outline focus:border-primary-container focus:ring-1 focus:ring-primary-container focus:outline-none" placeholder="Ej: Tarta de Manzana" type="text"/>
+                </div>
+
+                <!-- Image Upload (Placeholder visual) -->
+                <div class="space-y-2">
+                    <label class="block font-label-md text-label-md text-on-surface-variant">Imagen (Opcional)</label>
+                    <div class="w-full h-32 bg-background border border-surface-variant border-dashed rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-surface-variant/30 transition-colors group">
+                        <span class="material-symbols-outlined text-outline group-hover:text-primary mb-2 text-3xl">image</span>
+                        <span class="text-outline font-label-sm text-label-sm group-hover:text-primary">Subir imagen</span>
+                    </div>
+                </div>
+
+                <!-- Ingredients -->
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[18px] text-secondary">local_dining</span>
+                        Ingredientes (uno por línea)
+                    </label>
+                    <textarea id="manual-ingredientes" class="w-full bg-background border border-surface-variant rounded-md px-4 py-3 text-on-surface font-body-md placeholder:text-outline focus:border-primary-container focus:ring-1 focus:ring-primary-container resize-y focus:outline-none" placeholder="3 manzanas verdes&#10;200g de azúcar" rows="4"></textarea>
+                </div>
+
+                <!-- Steps -->
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[18px] text-primary">restaurant_menu</span>
+                        Pasos de preparación (separa cada paso con un salto de línea)
+                    </label>
+                    <textarea id="manual-pasos" class="w-full bg-background border border-surface-variant rounded-md px-4 py-3 text-on-surface font-body-md placeholder:text-outline focus:border-primary-container focus:ring-1 focus:ring-primary-container resize-y focus:outline-none" placeholder="Paso 1: Pelar las manzanas..." rows="5"></textarea>
+                </div>
+            </div>
+
+            <!-- Panel URL -->
+            <div id="panel-url" class="tab-panel oculto space-y-lg">
+                <div class="space-y-2">
+                    <label class="block font-label-md text-label-md text-on-surface-variant">URL de la receta</label>
+                    <input id="url-receta" class="w-full bg-background border border-surface-variant rounded-md px-4 py-3 text-on-surface font-body-md placeholder:text-outline focus:border-primary-container focus:ring-1 focus:ring-primary-container focus:outline-none" placeholder="https://ejemplo.com/receta" type="url"/>
+                    <small class="text-outline text-label-sm">Ingresa la URL de cualquier página de receta (con formato de receta o texto plano).</small>
+                </div>
+            </div>
+
+            <!-- Sección de preview (Oculta por defecto) -->
+            <section id="seccion-preview" class="oculto bg-surface-container-high rounded-xl p-md border border-primary/30 mt-4" aria-live="polite">
+                <h2 class="font-headline-md text-headline-md text-primary mb-4">👀 Vista Previa</h2>
+                <div id="preview-contenido" class="space-y-4">
+                    <!-- Se rellena dinámicamente con JS -->
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-end gap-4 pt-4 mt-lg border-t border-outline-variant">
+                <button id="btn-preview" class="px-6 py-3 rounded-md font-label-md text-label-md border border-outline text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center gap-2" type="button" onclick="previsualizarReceta()">
+                    <span class="material-symbols-outlined text-[20px]">preview</span>
+                    Previsualizar
+                </button>
+                <button id="btn-guardar" class="px-6 py-3 rounded-md font-label-md text-label-md bg-primary-container text-on-primary-container hover:bg-primary transition-colors flex items-center justify-center gap-2 shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed" type="button" onclick="guardarReceta()" disabled>
+                    <span class="material-symbols-outlined text-[20px]">save</span>
+                    Guardar Receta
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-md pb-safe bg-surface-container-highest shadow-lg z-50 border-t border-outline-variant/30 h-[80px]">
+    <a href="/" class="flex flex-col items-center justify-center text-on-surface h-[64px] w-full mx-2 hover:bg-primary-container/20 active:scale-90 transition-all rounded-xl">
+        <span class="material-symbols-outlined mb-1">home</span>
+        <span class="font-label-sm text-label-sm">Inicio</span>
+    </a>
+    <a href="/nueva" class="flex flex-col items-center justify-center bg-primary text-on-primary h-[64px] w-full mx-2 active:scale-90 transition-all rounded-xl shadow-sm">
+        <span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+        <span class="font-label-sm text-label-sm">Nueva</span>
+    </a>
+    <a href="#" class="flex flex-col items-center justify-center text-on-surface h-[64px] w-full mx-2 hover:bg-primary-container/20 active:scale-90 transition-all rounded-xl">
+        <span class="material-symbols-outlined mb-1">favorite</span>
+        <span class="font-label-sm text-label-sm">Favs</span>
+    </a>
+</nav>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="/static/js/editor.js"></script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="post-container">
+    <div class="post-header">
+        <h1>{{ libro[1] }}</h1>
+        <span class="badge">ID: {{ libro[0] }}</span>
+    </div>
+    <div class="post-body">
+        <h3>Reseña</h3>
+        <p>{{ libro[2] }}</p>
+    </div>
+    <div class="post-footer">
+        <a href="/" class="btn btn-outline">Volver al listado</a>
+        <div class="actions">
+            <a href="/edit/{{ libro[0] }}" class="btn btn-outline">Editar</a>
+            <form action="/delete/{{ libro[0] }}" method="POST" class="inline-form" onsubmit="return confirm('¿Seguro que deseas eliminar este libro?');">
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

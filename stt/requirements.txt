@@ -1,0 +1,8 @@
+sounddevice
+faster-whisper
+huggingface-hub==0.36.2
+numpy
+pynput
+pyperclip
+deep-translator
+gtts

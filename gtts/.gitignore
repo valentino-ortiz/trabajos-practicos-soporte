@@ -1,0 +1,22 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Datos del usuario y multimedia generada
+data/*.db
+cache/*.mp3
+!cache/.gitkeep
+!data/.gitkeep
+
+# Mac/OSX
+.DS_Store
+
+# Archivos de entorno y configuraciones locales
+.env

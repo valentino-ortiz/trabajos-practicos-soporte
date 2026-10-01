@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Inicio – Sistema de Presupuestos{% endblock %}
+{% block content %}
+
+<div class="flex flex-col items-center justify-center mb-10 mt-6">
+    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">¿Qué deseas hacer hoy?</h1>
+    <a href="/presupuestos/nuevo" class="inline-flex items-center gap-2 px-8 py-4 text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Crear Nuevo Presupuesto
+    </a>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="bg-white dark:bg-slate-950 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-blue-500">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Categorías activas</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-white">{{ stats.categorias }}</div>
+    </div>
+    <div class="bg-white dark:bg-slate-950 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-blue-500">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{{ config_alias.proyectos | default('Productos') }}</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-white">{{ stats.productos }}</div>
+    </div>
+    <div class="bg-white dark:bg-slate-950 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-blue-500">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{{ config_alias.insumos | default('Piezas') }}</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-white">{{ stats.piezas }}</div>
+    </div>
+    <div class="bg-white dark:bg-slate-950 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-blue-500">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{{ config_alias.servicios | default('Reparaciones') }}</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-white">{{ stats.reparaciones }}</div>
+    </div>
+    <div class="bg-white dark:bg-slate-950 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-blue-500">
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Presupuestos totales</div>
+        <div class="text-3xl font-bold text-slate-900 dark:text-white">{{ stats.presupuestos }}</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Columna Izquierda: Últimos Presupuestos -->
+    <div class="lg:col-span-2 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+            <h3 class="font-semibold text-slate-900 dark:text-white">Últimos Presupuestos</h3>
+            <a href="/presupuestos" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">Ver todos →</a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400">
+                    <tr>
+                        <th class="px-6 py-3 font-medium uppercase tracking-wider text-xs">ID</th>
+                        <th class="px-6 py-3 font-medium uppercase tracking-wider text-xs">Cliente</th>
+                        <th class="px-6 py-3 font-medium uppercase tracking-wider text-xs">Total</th>
+                        <th class="px-6 py-3 font-medium uppercase tracking-wider text-xs">Estado</th>
+                        <th class="px-6 py-3 font-medium uppercase tracking-wider text-xs text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% for p in ultimos_presupuestos %}
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+                        <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#{{ p.id }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ p.cliente_nombre }}</td>
+                        <td class="px-6 py-4 text-slate-600 dark:text-slate-300">${{ "%.2f"|format(p.total) }}</td>
+                        <td class="px-6 py-4">
+                            {% if p.estado == 'Pendiente' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pendiente</span>
+                            {% elif p.estado == 'Aceptado' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Aceptado</span>
+                            {% elif p.estado == 'Rechazado' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400">Rechazado</span>
+                            {% elif p.estado == 'Terminado' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Terminado</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="/presupuestos/{{ p.id }}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                Ver detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                            No hay presupuestos creados aún.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Administración -->
+    <div class="bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Administración Rápida</h3>
+        
+        <details class="group bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer">
+            <summary class="px-4 py-3 font-medium text-slate-700 dark:text-slate-300 select-none flex justify-between items-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                Opciones CRUD
+                <svg class="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </summary>
+            
+            <div class="px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+                <a href="/categorias" class="flex justify-between items-center px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+                    <span>Categorías</span> <span>→</span>
+                </a>
+                <a href="/productos" class="flex justify-between items-center px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+                    <span>{{ config_alias.proyectos | default('Productos') }}</span> <span>→</span>
+                </a>
+                <a href="/piezas" class="flex justify-between items-center px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+                    <span>{{ config_alias.insumos | default('Piezas') }}</span> <span>→</span>
+                </a>
+                <a href="/tipos-reparacion" class="flex justify-between items-center px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+                    <span>{{ config_alias.servicios | default('Reparaciones') }}</span> <span>→</span>
+                </a>
+                <a href="/configuracion" class="flex justify-between items-center px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors">
+                    <span>Configuración</span> <span>→</span>
+                </a>
+            </div>
+        </details>
+    </div>
+</div>
+
+
+{% endblock %}
