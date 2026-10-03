@@ -30,7 +30,7 @@ PRESETS = {
         "ancho": 40,  # Valores aproximados iniciales
         "alto": 20,
         "threshold": 150,
-        "stabilize": False, # Desactivado por defecto, activalo si el video tiene movimiento
+        "stabilize": True,  # Activar compensación de movimiento de cámara
         "thresh_block_size": 25,
         "thresh_c": 16
     }
