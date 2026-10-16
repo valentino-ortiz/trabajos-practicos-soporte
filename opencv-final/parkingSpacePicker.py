@@ -1,59 +1,33 @@
 import argparse
 import cv2
-import pickle
 
-PRESETS = {
-    1: {
-        "imagen": "img.png",
-        "posiciones": "carParkPos",
-        "ancho": 107,
-        "alto": 48,
-        "formato_individual": False  # Formato viejo: (x, y)
-    },
-    2: {
-        "imagen": "img.png",
-        "posiciones": "posiciones_nuevo",
-        "ancho": 40,  # Ancho por defecto al empezar a colocar celdas
-        "alto": 22,   # Alto por defecto al empezar a colocar celdas
-        "formato_individual": True   # Formato nuevo: (x, y, w, h)
-    },
-    3: {
-        "imagen": "frame_video_park.png",
-        "posiciones": "posiciones_park",
-        "ancho": 40,  # Ancho inicial sugerido (modificable en picker con flechas)
-        "alto": 20,   # Alto inicial sugerido
-        "formato_individual": True
-    }
-}
+from autodetectar import candidatas
+from common import cargar_celdas, cargar_preset, guardar_celdas
+
 
 def main():
     parser = argparse.ArgumentParser(description="Selector de celdas de estacionamiento")
-    parser.add_argument("--preset", type=int, default=1, help="Número de preset a utilizar (1, 2, etc.)")
+    parser.add_argument("--preset", type=int, default=1, help="Número de preset (ver config.json)")
     parser.add_argument("--imagen", help="Ruta a la imagen de fondo")
-    parser.add_argument("--posiciones", help="Archivo para guardar las posiciones")
-    parser.add_argument("--ancho", type=int, help="Ancho del rectángulo de la celda")
-    parser.add_argument("--alto", type=int, help="Alto del rectángulo de la celda")
+    parser.add_argument("--celdas", help="Archivo JSON donde guardar las celdas")
+    parser.add_argument("--ancho", type=int, help="Ancho inicial de la celda")
+    parser.add_argument("--alto", type=int, help="Alto inicial de la celda")
     args = parser.parse_args()
 
-    # Cargar valores del preset seleccionado (o por defecto 1)
-    preset_config = PRESETS.get(args.preset, PRESETS[1])
-
-    img_file = args.imagen if args.imagen is not None else preset_config["imagen"]
-    pos_file = args.posiciones if args.posiciones is not None else preset_config["posiciones"]
-    rectW = args.ancho if args.ancho is not None else preset_config["ancho"]
-    rectH = args.alto if args.alto is not None else preset_config["alto"]
-    formato_individual = preset_config.get("formato_individual", False)
+    cfg = cargar_preset(args.preset)
+    img_file = args.imagen or cfg["imagen"]
+    pos_file = args.celdas or cfg["celdas"]
+    rectW = args.ancho or cfg["ancho"]
+    rectH = args.alto or cfg["alto"]
+    formato_individual = True
 
     # Tamaño actual del cursor (se puede ajustar con teclas)
     curW = rectW
     curH = rectH
     STEP_SIZE = 2  # Cuántos píxeles cambia cada vez que ajustas
 
-    try:
-        with open(pos_file, 'rb') as f:
-            posList = pickle.load(f)
-    except:
-        posList = []
+    posList = [tuple(c) for c in cargar_celdas(pos_file)]
+    candList = []  # candidatas de autodetección pendientes de aprobar (no se guardan hasta 'y')
 
     # Variables para Zoom y Pan
     zoom = 1.0
@@ -82,6 +56,10 @@ def main():
                 posList.append((orig_x, orig_y))
 
         if events == cv2.EVENT_RBUTTONDOWN:
+            for i, (x1, y1, pw, ph, _) in enumerate(candList):  # primero se rechazan candidatas
+                if x1 < orig_x < x1 + pw and y1 < orig_y < y1 + ph:
+                    candList.pop(i)
+                    return
             for i, pos in enumerate(posList):
                 if formato_individual and len(pos) == 4:
                     x1, y1, pw, ph = pos
@@ -92,8 +70,7 @@ def main():
                     posList.pop(i)
                     break
 
-        with open(pos_file, 'wb') as f:
-            pickle.dump(posList, f)
+        guardar_celdas(pos_file, posList)
 
     cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Image", 1280, 720)
@@ -116,6 +93,9 @@ def main():
     print("Teclas '+' o '=': Zoom In (Acercar)")
     print("Tecla '-': Zoom Out (Alejar)")
     print("Teclas W, A, S, D: Moverse por la imagen (Pan)")
+    print("Tecla 'g': Autodetectar candidatas (magenta) a partir de las celdas marcadas")
+    print("   Click Derecho sobre una candidata: rechazarla")
+    print("   Tecla 'y': aceptar todas las candidatas restantes / 'n': descartarlas")
     print("Tecla 'q': Salir\n")
 
     while True:
@@ -129,6 +109,12 @@ def main():
                 px, py = pos[0], pos[1]
                 pw, ph = rectW, rectH
             cv2.rectangle(img, (px, py), (px + pw, py + ph), (0, 0, 255), 2)
+        for px, py, pw, ph, _ in candList:
+            cv2.rectangle(img, (px, py), (px + pw, py + ph), (255, 0, 255), 2)
+        if candList:
+            cv2.rectangle(img, (5, 35), (520, 60), (0, 0, 0), -1)
+            cv2.putText(img, f'{len(candList)} candidatas: click der. rechaza, y acepta, n descarta', (10, 52),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
 
         # Dibujar preview del cursor actual (rectángulo verde semi-transparente)
         if formato_individual:
@@ -159,11 +145,19 @@ def main():
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
+        elif key == ord('g'):
+            candList = candidatas(posList, base_img)
+            print(f"{len(candList)} candidatas propuestas")
+        elif key == ord('y') and candList:
+            posList += [tuple(int(v) for v in c[:4]) for c in candList]
+            candList = []
+            guardar_celdas(pos_file, posList)
+        elif key == ord('n'):
+            candList = []
         elif key == ord('z') or key == ord('Z'):
             if posList:
                 posList.pop()
-                with open(pos_file, 'wb') as f:
-                    pickle.dump(posList, f)
+                guardar_celdas(pos_file, posList)
         # Ajustar tamaño del cursor (solo en formato individual)
         elif formato_individual and key == ord('r'):  # ↑ = Aumentar alto
             curH += STEP_SIZE
