@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import numpy as np
 
@@ -39,6 +41,7 @@ class Detector:
         self.centro = (960, 540)
         self.ref_pts = self.cur_pts = None
         self.asfalto = None  # color Lab medio del asfalto vacío
+        self.tiempos = {}    # ms de la última update(): estabilizar, medir, total
 
     @property
     def offset(self):  # desplazamiento en el centro de la imagen (el del origen se distorsiona con rotación/escala)
@@ -85,13 +88,18 @@ class Detector:
                     self.cur_pts = np.vstack([self.cur_pts, nuevos])
         self.prev_gray = gray
 
-    def medir(self, img, gray):
-        """Por celda: (desvío estándar del gris, distancia de color al asfalto). NaN si la celda sale de la imagen."""
+    def medir(self, img, gray, con_color=True):
+        """Por celda: (desvío estándar del gris, distancia de color al asfalto). NaN si la celda sale de la imagen.
+        El color (Lab) se calcula solo sobre el rectángulo que cubren las celdas, y no se calcula si con_color=False."""
         H, W = gray.shape
-        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        pol = self.poligonos()
         std = np.full(len(self.poly), np.nan)
         color = np.full((len(self.poly), 3), np.nan)
-        for i, p in enumerate(self.poligonos()):
+        if con_color:
+            bx0, by0 = np.maximum(np.floor(pol.reshape(-1, 2).min(0)).astype(int), 0)
+            bx1, by1 = np.minimum(np.ceil(pol.reshape(-1, 2).max(0)).astype(int), [W, H])
+            lab = cv2.cvtColor(img[by0:by1, bx0:bx1], cv2.COLOR_BGR2LAB)
+        for i, p in enumerate(pol):
             x0, y0 = np.floor(p.min(0)).astype(int)
             x1, y1 = np.ceil(p.max(0)).astype(int)
             if x0 < 0 or y0 < 0 or x1 > W or y1 > H:
@@ -99,8 +107,11 @@ class Detector:
             m = np.zeros((y1 - y0, x1 - x0), np.uint8)
             cv2.fillConvexPoly(m, np.round(p - [x0, y0]).astype(np.int32), 1)
             std[i] = cv2.meanStdDev(gray[y0:y1, x0:x1], mask=m)[1][0, 0]
-            color[i] = cv2.mean(lab[y0:y1, x0:x1], mask=m)[:3]
+            if con_color:
+                color[i] = cv2.mean(lab[y0 - by0:y1 - by0, x0 - bx0:x1 - bx0], mask=m)[:3]
         # asfalto = mediana de las celdas bien lisas; un auto liso suelto no mueve la mediana
+        if not con_color:
+            return std, np.zeros(len(std))
         lisas = std < 0.7 * self.cfg.get("umbral_std", 40)
         if lisas.sum() >= 5:
             self.asfalto = np.median(color[lisas], axis=0)
@@ -113,9 +124,14 @@ class Detector:
         if gray.mean() < BRILLO_MIN:
             return [None if not self.inicializado[i] else bool(self.estado[i]) for i in range(n)]
         self.centro = (gray.shape[1] / 2, gray.shape[0] / 2)
+        t0 = time.perf_counter()
         if self.stabilize:
             self._estabilizar(gray)
-        std, dist = self.medir(img, gray)
+        t1 = time.perf_counter()
+        # sin umbral_color la señal de color queda apagada: no se calcula Lab (ahorra ~un tercio del tiempo)
+        std, dist = self.medir(img, gray, con_color="umbral_color" in self.cfg)
+        t2 = time.perf_counter()
+        self.tiempos = {"estabilizar": (t1 - t0) * 1e3, "medir": (t2 - t1) * 1e3}
         # 40: valor típico hasta correr calibrar.py; sin umbral_color la señal de color queda apagada
         crudo = np.maximum(std / self.cfg.get("umbral_std", 40), dist / self.cfg.get("umbral_color", np.inf))
         valido = ~np.isnan(crudo)
@@ -135,4 +151,5 @@ class Detector:
         flip = self.racha >= self.N
         self.estado[flip] = objetivo[flip]
         self.racha[flip] = 0
+        self.tiempos["total"] = (time.perf_counter() - t0) * 1e3
         return [bool(self.estado[i]) if valido[i] else None for i in range(n)]
