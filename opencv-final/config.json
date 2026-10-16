@@ -1,0 +1,42 @@
+{
+  "1": {
+    "video": "carPark.mp4",
+    "imagen": "img_carpark.png",
+    "celdas": "celdas_1.json",
+    "ancho": 107,
+    "alto": 48,
+    "threshold": 900,
+    "stabilize": false,
+    "thresh_block_size": 25,
+    "thresh_c": 16,
+    "umbral_std": 37.88,
+    "calibrado_en": 0
+  },
+  "2": {
+    "video": "video2.mkv",
+    "imagen": "img.png",
+    "celdas": "celdas_2.json",
+    "ancho": 40,
+    "alto": 23,
+    "threshold": 160,
+    "stabilize": true,
+    "thresh_block_size": 41,
+    "thresh_c": 20,
+    "umbral_std": 44.44,
+    "calibrado_en": 600,
+    "umbral_color": 13.56
+  },
+  "3": {
+    "video": "video-park.mp4",
+    "imagen": "frame_video_park.png",
+    "celdas": "celdas_3.json",
+    "ancho": 40,
+    "alto": 20,
+    "threshold": 150,
+    "stabilize": true,
+    "thresh_block_size": 25,
+    "thresh_c": 16,
+    "umbral_std": 33.54,
+    "calibrado_en": 0
+  }
+}

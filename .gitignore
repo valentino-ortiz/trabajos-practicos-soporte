@@ -2,3 +2,7 @@
 .env
 __pycache__/
 *.py[cod]
+# videos de opencv-final (pesados)
+opencv-final/*.mp4
+opencv-final/*.mkv
+gt/

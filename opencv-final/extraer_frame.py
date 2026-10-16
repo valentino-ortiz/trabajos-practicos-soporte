@@ -5,11 +5,6 @@ import cv2
 import numpy as np
 
 
-VIDEO = Path(__file__).with_name(
-    "Busy Parking Lot - Aerial Time-Lapse [yojapmOkIfg].mkv"
-)
-
-
 def es_frame_negro(frame: np.ndarray, umbral_brillo: float = 65.0) -> bool:
     """
     Determina si un frame es negro o demasiado oscuro (por ejemplo durante un fade-in inicial).
@@ -90,8 +85,8 @@ def main() -> None:
     parser.add_argument(
         "--video",
         type=Path,
-        default=VIDEO,
-        help=f"Ruta al archivo de video (por defecto: {VIDEO.name})",
+        required=True,
+        help="Ruta al archivo de video",
     )
     parser.add_argument(
         "--segundo",
