@@ -10,7 +10,14 @@
     "thresh_block_size": 25,
     "thresh_c": 16,
     "umbral_std": 37.88,
-    "calibrado_en": 0
+    "calibrado_en": 0,
+    "nombre": "Estacionamiento 1 (carPark)",
+    "inicio": "08:00",
+    "escala": 2,
+    "umbrales_ocupacion": [
+      0.7,
+      0.9
+    ]
   },
   "2": {
     "video": "video2.mkv",
@@ -24,7 +31,14 @@
     "thresh_c": 20,
     "umbral_std": 44.44,
     "calibrado_en": 600,
-    "umbral_color": 13.56
+    "umbral_color": 13.56,
+    "nombre": "Estacionamiento 2 (video2)",
+    "inicio": "08:00",
+    "escala": 2,
+    "umbrales_ocupacion": [
+      0.7,
+      0.9
+    ]
   },
   "3": {
     "video": "video-park.mp4",
@@ -37,6 +51,13 @@
     "thresh_block_size": 25,
     "thresh_c": 16,
     "umbral_std": 33.54,
-    "calibrado_en": 0
+    "calibrado_en": 0,
+    "nombre": "Estacionamiento 3 (video-park)",
+    "inicio": "08:00",
+    "escala": 2,
+    "umbrales_ocupacion": [
+      0.7,
+      0.9
+    ]
   }
 }

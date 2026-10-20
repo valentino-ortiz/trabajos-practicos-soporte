@@ -6,3 +6,8 @@ __pycache__/
 opencv-final/*.mp4
 opencv-final/*.mkv
 gt/
+
+# base de datos del dashboard (se regenera con main.py --registrar)
+opencv-final/estacionamiento.db
+opencv-final/estacionamiento.db-wal
+opencv-final/estacionamiento.db-shm

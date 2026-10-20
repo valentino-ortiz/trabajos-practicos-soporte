@@ -31,3 +31,10 @@ def guardar_mosaicos(vis, nombre):
         cv2.imwrite(str(ruta), vis[r * H // 2:(r + 1) * H // 2, c * W // 2:(c + 1) * W // 2])
         rutas.append(ruta)
     return rutas
+
+
+def lote(n):
+    """Parámetros de negocio de un preset (estacionamiento), con valores por defecto si faltan en config.json."""
+    cfg = cargar_preset(n)
+    return dict(nombre=cfg.get("nombre", f"Estacionamiento {n}"), inicio=cfg.get("inicio", "08:00"),
+                escala=cfg.get("escala", 2), umbrales=tuple(cfg.get("umbrales_ocupacion", (0.7, 0.9))))

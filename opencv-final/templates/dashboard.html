@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estacionamiento</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --texto:#1d2330; --suave:#6b7280; --libre:#22a55b; --ocupada:#d6453d; --vacio:#cfd4dc; --alerta:#b42318; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#12151b; --card:#1c2029; --texto:#e8ebf0; --suave:#9aa3b2; --vacio:#3a414d; }
+  }
+  :root[data-theme="dark"] { --bg:#12151b; --card:#1c2029; --texto:#e8ebf0; --suave:#9aa3b2; --vacio:#3a414d; }
+  body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--texto); }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+  h1 { font-size: 20px; margin: 0; }
+  button { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--vacio); background: var(--card); color: var(--texto); cursor: pointer; }
+  select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--vacio); background: var(--card); color: var(--texto); }
+  .grid { display:grid; gap:16px; grid-template-columns: 1fr; margin-top:16px; }
+  @media (min-width: 800px) { .grid { grid-template-columns: 1fr 1fr; } .ancho { grid-column: 1 / -1; } }
+  .card { background: var(--card); border-radius: 12px; padding: 16px; }
+  .card h2 { font-size: 14px; color: var(--suave); font-weight: 600; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .conteo { font-size: 44px; font-weight: 700; }
+  .conteo small { font-size: 18px; color: var(--suave); font-weight: 500; }
+  .nivel { display:inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color:#fff; background: var(--libre); }
+  .nivel.medio { background: #d98e04; } .nivel.casi_lleno { background: #e0631a; } .nivel.lleno { background: var(--alerta); }
+  .alerta { display:none; background: var(--alerta); color:#fff; border-radius: 10px; padding: 10px 14px; font-weight: 600; margin-top: 12px; }
+  .alerta.visible { display:block; }
+  .meta { color: var(--suave); font-size: 13px; margin-top: 8px; }
+  svg { width: 100%; height: auto; display:block; }
+  .metricas { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .metrica b { display:block; font-size: 22px; }
+  .metrica span { color: var(--suave); font-size: 13px; }
+  .error { color: var(--alerta); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Estacionamiento</h1>
+    <select id="lote" aria-label="Estacionamiento"></select>
+  </header>
+  <p class="meta">Tiempo simulado (ver config.json: hora de inicio y escala). <span id="hora"></span></p>
+  <section class="card" style="margin-top:16px">
+    <h2>Cámara</h2>
+    <img src="/video" alt="Video de la cámara con las celdas detectadas" style="width:100%; display:block; border-radius:8px">
+    <p style="margin:10px 0 0"><button id="play" type="button">▶ Reanudar</button></p>
+  </section>
+  <div id="sin-datos" class="card error" style="display:none; margin-top:16px"></div>
+
+  <div class="grid" id="contenido">
+    <section class="card">
+      <h2>Libres ahora</h2>
+      <div class="conteo"><span id="libres">–</span> <small>/ <span id="total">–</span></small></div>
+      <p style="margin:10px 0 0"><span id="nivel" class="nivel">–</span></p>
+      <div id="alerta" class="alerta">ESTACIONAMIENTO LLENO</div>
+    </section>
+
+    <section class="card">
+      <h2>Métricas</h2>
+      <div class="metricas">
+        <div class="metrica"><b id="estadia">–</b><span>estadía promedio (min simulados)</span></div>
+        <div class="metrica"><b id="completas">–</b><span>estadías completas</span></div>
+        <div class="metrica"><b id="pico">–</b><span>hora pico (desde, min)</span></div>
+        <div class="metrica"><b id="llegadas">–</b><span>llegadas registradas</span></div>
+      </div>
+    </section>
+
+    <section class="card ancho">
+      <h2>Plano del estacionamiento</h2>
+      <svg id="plano" viewBox="0 0 10 10" role="img" aria-label="Plano de celdas"></svg>
+      <p class="meta"><span style="color:var(--libre)">■</span> libre &nbsp; <span style="color:var(--ocupada)">■</span> ocupada &nbsp; <span style="color:var(--vacio)">■</span> sin dato</p>
+    </section>
+
+    <section class="card ancho">
+      <h2>Ocupación en el tiempo</h2>
+      <svg id="grafico" viewBox="0 0 800 260" role="img" aria-label="Ocupación por franja"></svg>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+let lote = null;
+
+function el(tag, attrs, texto) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (texto !== undefined) e.textContent = texto;
+  return e;
+}
+
+async function pedir(ruta) {
+  const r = await fetch(ruta);
+  if (!r.ok) throw new Error((await r.json()).error || r.status);
+  return r.json();
+}
+
+async function cargarLotes() {
+  const lotes = await pedir("/api/lotes");
+  for (const l of lotes) {
+    const o = document.createElement("option");
+    o.value = l.id;
+    o.textContent = l.nombre + (l.tiene_datos ? "" : " (sin datos)");
+    $("lote").appendChild(o);
+  }
+  lote = (await pedir("/api/camara")).preset;  // el dashboard sigue al lote de la cámara
+  $("lote").value = lote;
+}
+
+function dibujarPlano(celdas) {
+  const svg = $("plano");
+  svg.replaceChildren();
+  const W = Math.max(...celdas.map(c => c.x + c.w)), H = Math.max(...celdas.map(c => c.y + c.h));
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  for (const c of celdas) {
+    const color = c.libre === true ? "var(--libre)" : c.libre === false ? "var(--ocupada)" : "var(--vacio)";
+    svg.appendChild(el("rect", { x: c.x, y: c.y, width: c.w, height: c.h, fill: color, "fill-opacity": 0.55,
+                                 stroke: color, "stroke-width": 2 }));
+    svg.appendChild(el("text", { x: c.x + c.w / 2, y: c.y + c.h / 2 + 6, "text-anchor": "middle",
+                                 "font-size": 16, fill: "#fff", "font-weight": 600 }, String(c.id)));
+  }
+}
+
+function dibujarSerie(puntos) {
+  const svg = $("grafico");
+  svg.replaceChildren();
+  const L = 50, R = 780, T = 10, B = 230, W = R - L, H = B - T;
+  for (const pct of [0, 0.5, 1]) {
+    const y = B - pct * H;
+    svg.appendChild(el("line", { x1: L, x2: R, y1: y, y2: y, stroke: "var(--vacio)", "stroke-dasharray": pct ? "4 4" : "" }));
+    svg.appendChild(el("text", { x: L - 8, y: y + 4, "text-anchor": "end", "font-size": 12, fill: "var(--suave)" }, `${Math.round(pct * 100)}%`));
+  }
+  if (!puntos.length) { svg.appendChild(el("text", { x: 400, y: 130, "text-anchor": "middle", fill: "var(--suave)" }, "Sin datos todavía")); return; }
+  const maxMin = Math.max(...puntos.map(p => p.desde_min)) + 10;
+  const x = (min) => L + (min / maxMin) * W;
+  const y = (o) => B - o * H;
+  const pts = puntos.map(p => `${x(p.desde_min)},${y(p.ocupacion)}`).join(" ");
+  svg.appendChild(el("polyline", { points: pts, fill: "none", stroke: "var(--ocupada)", "stroke-width": 3 }));
+  for (const p of puntos) {
+    svg.appendChild(el("circle", { cx: x(p.desde_min), cy: y(p.ocupacion), r: 4, fill: "var(--ocupada)" }));
+    svg.appendChild(el("text", { x: x(p.desde_min), y: B + 18, "text-anchor": "middle", "font-size": 12, fill: "var(--suave)" }, `${p.desde_min}′`));
+  }
+}
+
+async function actualizarEstado() {
+  if (lote === null) return;
+  try {
+    const e = await pedir(`/api/lote/${lote}/estado`);
+    $("sin-datos").style.display = "none";
+    $("contenido").style.display = "";
+    $("libres").textContent = e.libres;
+    $("total").textContent = e.total;
+    $("nivel").textContent = { libre: "Libre", medio: "Ocupación media", casi_lleno: "Casi lleno", lleno: "Lleno" }[e.nivel];
+    $("nivel").className = "nivel " + e.nivel;
+    $("alerta").classList.toggle("visible", e.alerta_lleno);
+    $("hora").textContent = `Hora simulada ${e.hora_simulada} (${e.minutos_simulados} min desde el inicio)`;
+    dibujarPlano(e.celdas);
+  } catch (err) {
+    $("contenido").style.display = "none";
+    $("sin-datos").style.display = "block";
+    $("sin-datos").textContent = err.message;
+  }
+}
+
+async function actualizarDetalle() {
+  if (lote === null) return;
+  try {
+    const [s, m] = await Promise.all([pedir(`/api/lote/${lote}/serie`), pedir(`/api/lote/${lote}/metricas`)]);
+    dibujarSerie(s.puntos);
+    $("estadia").textContent = m.estadia_promedio_min ?? "–";
+    $("completas").textContent = m.estadias_completas;
+    $("pico").textContent = m.hora_pico ? `${m.hora_pico.desde_min}′` : "–";
+    $("llegadas").textContent = m.rotacion.reduce((a, r) => a + r.llegadas, 0);
+  } catch (err) { /* sin datos: la sección de estado ya lo muestra */ }
+}
+
+function mostrarCamara(c) { $("play").textContent = c.corriendo ? "⏸ Pausar" : "▶ Reanudar"; }
+
+async function enviar(ruta) {
+  const r = await fetch(ruta, { method: "POST" });
+  mostrarCamara(await r.json());
+}
+
+$("play").addEventListener("click", () => enviar("/api/camara/pausa"));
+$("lote").addEventListener("change", async (ev) => {
+  lote = Number(ev.target.value);
+  await enviar(`/api/camara/preset/${lote}`);  // cambiar de lote cambia la cámara y la deja en pausa
+  actualizarEstado(); actualizarDetalle();
+});
+
+(async () => {
+  await cargarLotes();
+  actualizarEstado();
+  actualizarDetalle();
+  setInterval(actualizarEstado, 1000);
+  setInterval(async () => mostrarCamara(await pedir("/api/camara")), 1000);  // el fin del video pausa solo
+  setInterval(actualizarDetalle, 10000);
+})();
+</script>
+</body>
+</html>

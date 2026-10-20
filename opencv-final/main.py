@@ -1,11 +1,15 @@
 import argparse
 import time
+from datetime import datetime
 
 import cv2
 import numpy as np
 
-from common import cargar_celdas, cargar_preset, guardar_mosaicos
+import db
+from common import cargar_celdas, cargar_preset, guardar_mosaicos, lote
 from detector import Detector
+
+MUESTRA_CADA = 10  # segundos simulados entre muestras del conteo
 
 
 def dibujar(img, det, estados, n_celdas, cfg, info_extra=""):
@@ -34,6 +38,45 @@ def capturar(crudo, det, estados, preset, nro):
         print(f"  {ruta}")
 
 
+class Registrador:
+    """Escribe en SQLite los cambios de estado de cada celda (eventos) y el conteo cada MUESTRA_CADA s simulados.
+    t_sim = segundo del video * escala (minutos simulados por segundo de video) * 60."""
+
+    def __init__(self, preset, fps):
+        p = lote(preset)
+        self.con = db.conectar()
+        h, m = map(int, p["inicio"].split(":"))
+        inicio = datetime.now().replace(hour=h, minute=m, second=0, microsecond=0)
+        self.sesion = db.nueva_sesion(self.con, preset, inicio.isoformat(timespec="minutes"), p["escala"])
+        self.seg_por_frame = p["escala"] * 60 / (fps or 30)
+        self.previo, self.ultima_muestra = {}, None
+        self.n_eventos = self.n_muestras = 0
+
+    def registrar(self, nro_frame, estados):
+        t = nro_frame * self.seg_por_frame
+        eventos = []
+        for celda, libre in enumerate(estados):
+            if libre is None:  # fuera de imagen o sin frame válido: no se sabe, no se registra
+                continue
+            if celda not in self.previo:
+                eventos.append((celda, t, libre, True))
+            elif self.previo[celda] != libre:
+                eventos.append((celda, t, libre, False))
+            self.previo[celda] = libre
+        if eventos:
+            db.registrar_eventos(self.con, self.sesion, eventos)
+            self.n_eventos += len(eventos)
+        if self.previo and (self.ultima_muestra is None or t - self.ultima_muestra >= MUESTRA_CADA):
+            conocidas = [e for e in estados if e is not None]
+            db.registrar_muestra(self.con, self.sesion, t, conocidas.count(True), len(conocidas))
+            self.ultima_muestra = t
+            self.n_muestras += 1
+
+    def cerrar(self):
+        self.con.close()
+        print(f"Sesión {self.sesion}: {self.n_eventos} eventos y {self.n_muestras} muestras guardados en {db.DB_PATH.name}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Detector de celdas de estacionamiento")
     parser.add_argument("--preset", type=int, default=1, help="Número de preset (ver config.json)")
@@ -45,6 +88,9 @@ def main():
                         help="Correr el detector cada N frames (los demás reutilizan el resultado). Default 1")
     parser.add_argument("--sin-ventana", action="store_true", help="No abrir ventana (más rápido, para medir o grabar)")
     parser.add_argument("--salida", help="Guardar el video con las celdas dibujadas (ej: salida.mp4)")
+    parser.add_argument("--registrar", action="store_true",
+                        help="Guardar eventos y conteo en SQLite para el dashboard (respeta el ritmo del video)")
+    parser.add_argument("--rapido", action="store_true", help="Con --registrar: procesar sin respetar el ritmo del video")
     parser.add_argument("--max-frames", type=int, help="Procesar solo los primeros N frames")
     args = parser.parse_args()
     if args.cada < 1:
@@ -67,6 +113,8 @@ def main():
     N = args.cada
     det = Detector(celdas, cfg, stabilize, alpha=1 - (1 - 0.15) ** N, confirmar=max(1, round(5 / N)))
 
+    registrador = Registrador(args.preset, fps) if args.registrar else None
+    pausar = args.registrar and not args.rapido  # respetar el ritmo del video
     escribir = None
     if args.salida:
         h, w = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -95,6 +143,8 @@ def main():
             corridas += 1
             acum["estabilizar"] += det.tiempos.get("estabilizar", 0)
             acum["medir"] += det.tiempos.get("medir", 0)
+            if registrador:
+                registrador.registrar(frames, estados)
         t2 = time.perf_counter()
         crudo = img.copy() if ventana else None  # para la captura 's', sin lo dibujado encima
         ox, oy = det.offset
@@ -113,7 +163,7 @@ def main():
             cv2.imshow("Image", img)
             t4 = time.perf_counter()
             ms_ema = (t4 - t0) * 1e3 if ms_ema is None else 0.9 * ms_ema + 0.1 * (t4 - t0) * 1e3
-            key = cv2.waitKey(max(1, round(frame_ms - (t4 - t0) * 1e3))) & 0xFF
+            key = cv2.waitKey(max(1, round(frame_ms - (t4 - t0) * 1e3)) if pausar or not args.registrar else 1) & 0xFF
             if key == ord('p'):  # pausa hasta la próxima tecla (que también se procesa)
                 key = cv2.waitKey(0) & 0xFF
             if key == ord('s'):
@@ -122,8 +172,12 @@ def main():
                 break
         else:
             ms_ema = (t3 - t0) * 1e3 if ms_ema is None else 0.9 * ms_ema + 0.1 * (t3 - t0) * 1e3
+            if pausar:
+                time.sleep(max(0.0, (frame_ms - (time.perf_counter() - t0) * 1e3) / 1e3))
 
     cap.release()
+    if registrador:
+        registrador.cerrar()
     if escribir:
         escribir.release()
     cv2.destroyAllWindows()
